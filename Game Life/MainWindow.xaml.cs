@@ -386,7 +386,7 @@ namespace Game_Life
             Stop_Click(sender, e);
             IndicRand.IsEnabled = true;
             IndicRand.Opacity = 1;
-            randInd = true;
+            randInd = (bool)IndicRand.IsChecked;
             Print();     
         }
         /// <summary>
