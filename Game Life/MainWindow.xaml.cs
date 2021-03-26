@@ -8,7 +8,7 @@ using System.Windows.Media;
 using System.Windows.Input;
 using System.Windows.Data;
 using ExtensionLibrary;
-using System.Diagnostics;
+using System.Threading;
 
 namespace Game_Life
 {
@@ -26,6 +26,8 @@ namespace Game_Life
         private bool indicMoore; // переключает режим между соседями со всех сторон (соседство Мура) - true, к соседям только по вертикалям и горизонталям (соседство Фон Неймана) - false
         private int startLife = 3; // число, которое задает начальное кол-во соседей, при которых клетка рождается
         private int endLife = 3; // число, которое задает конечное кол-во соседей, при которых клетка рождается
+        private bool randInd = false; // индикатор включен ли режим рандомного расрееделения живых клеток
+        private int density = 9; // число, определеяющее плотность заселения
         //private int startDie = 4; // число, которое задает начальное кол-во соседей, при которых клетка умирает
         //private int endDie = 9; // число, которое задает конечное кол-во соседей, при которых клетка умирает
 
@@ -37,8 +39,12 @@ namespace Game_Life
             K = 5;
             Size = 17;
             timer.Tick += Timer_Tick;
+            DensityObjectsInMenu.IsEnabled = false;
+            DensityObjectsInMenu.Opacity = 0.5;
             Print();
         }
+
+
         private int Size
         {
             get => size;
@@ -60,6 +66,10 @@ namespace Game_Life
         }
         private void Timer_Tick(object sender, EventArgs e)
         {
+            if (randInd)
+            {
+                PrintNewGeneration();
+            }
             Logic();
         }
         /// <summary>
@@ -68,7 +78,7 @@ namespace Game_Life
         private void Logic()
         {
             int aWidth = Convert.ToInt32(CanvasMap.Width / Size);
-            int aHeight = Convert.ToInt32(CanvasMap.Height / Size); 
+            int aHeight = Convert.ToInt32(CanvasMap.Height / Size);
             bool[,] newRectanglesLivesArray = new bool[aHeight, aWidth];
             for (int i = 0; i < rectanglesLivesArray.GetLength(0); i++)
             {
@@ -84,8 +94,7 @@ namespace Game_Life
                         newRectanglesLivesArray[i, j] = false;
                 }
             }
-                rectanglesLivesArray = newRectanglesLivesArray;
-            
+                rectanglesLivesArray = newRectanglesLivesArray;            
             PrintNewGeneration();
         }
         /// <summary>
@@ -93,16 +102,25 @@ namespace Game_Life
         /// </summary>
         private void PrintNewGeneration()
         {
+            var rand = new Random();
             for (int i = 0; i < rectanglesLivesArray.GetLength(0); i++)
             {
                 for (int j = 0; j < rectanglesLivesArray.GetLength(1); j++)
                 {
+                    if (randInd)
+                    {
+                        if (!rectanglesLivesArray[i, j])
+                        {                            
+                            rectanglesLivesArray[i, j] = rand.Next(0, density) == 2;
+                        }
+                    }
                     if (rectanglesLivesArray[i, j])
                         rectanglesArray[i, j].Fill = Brushes.LightGreen;
                     else
                         rectanglesArray[i, j].Fill = Brushes.Black;
                 }
             }
+            randInd = false;
         }
         /// <summary>
         /// Проверяет кол-во соседей у клетки
@@ -169,10 +187,10 @@ namespace Game_Life
         }
         private void Print()
         {
-            CanvasMap.Children.Clear();
             int aWidth = Convert.ToInt32(CanvasMap.Width / Size); // получаю сколько в ширину могу уместить квадратов
             int aHeight = Convert.ToInt32(CanvasMap.Height / Size); // получаю сколько в высоту могу уместить квадратов 
-            rectanglesLivesArray = new bool[aHeight ,aWidth];
+            CanvasMap.Children.Clear();
+            rectanglesLivesArray = new bool[aHeight, aWidth];
             rectanglesArray = new Rectangle[aHeight, aWidth];
             for (int i = 0; i < aHeight; i++)
             {
@@ -183,12 +201,11 @@ namespace Game_Life
                     rectangle.Height = Size - 1.0;
                     rectangle.MouseDown += SetLife;
                     rectangle.Opacity = 0.5;
-                    CanvasMap.Children.Add(rectangle);
-                    rectangle.Fill = Brushes.Black;
                     Canvas.SetLeft(rectangle, j * Size);
                     Canvas.SetTop(rectangle, i * Size);
                     rectanglesArray[i, j] = rectangle;
-                    rectanglesLivesArray[i, j] = false;
+                    rectangle.Fill = Brushes.Black;
+                    CanvasMap.Children.Add(rectangle);
                 }
             }
         }
@@ -225,12 +242,16 @@ namespace Game_Life
         { 
             if (StartSettings())
             {
+                Start.IsEnabled = false;
                 IntervalDown.IsEnabled = false;
                 IntervalUp.IsEnabled = false;
                 SizeDown.IsEnabled = false;
                 SizeUp.IsEnabled = false;
                 MyMenu.IsEnabled = false;
                 IndicMoore.IsEnabled = false;
+                IndicRand.IsEnabled = false;
+                Start.Opacity = 0.5;
+                IndicRand.Opacity = 0.5;
                 IndicMoore.Opacity = 0.5;
                 MyMenu.Opacity = 0.5;
                 IntervalDown.Opacity = 0.5;
@@ -297,12 +318,14 @@ namespace Game_Life
             if (timer.IsEnabled)
             {
                 timer.Stop();
+                Start.IsEnabled = true;
                 IntervalDown.IsEnabled = true;
                 IntervalUp.IsEnabled = true;
                 SizeDown.IsEnabled = true;
                 SizeUp.IsEnabled = true;
                 MyMenu.IsEnabled = true;
                 IndicMoore.IsEnabled = true;
+                Start.Opacity = 1;
                 IndicMoore.Opacity = 1;
                 MyMenu.Opacity = 1;
                 IntervalDown.Opacity = 1;
@@ -360,23 +383,56 @@ namespace Game_Life
         /// <param name="e"></param>
         private void Reset_Click(object sender, RoutedEventArgs e)
         {
-            if (timer.IsEnabled)
+            Stop_Click(sender, e);
+            IndicRand.IsEnabled = true;
+            IndicRand.Opacity = 1;
+            randInd = true;
+            Print();     
+        }
+        /// <summary>
+        /// увеличивает плотность населения, уменьшая density
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void DensityUp_Click(object sender, RoutedEventArgs e)
+        {
+            if (Density.Text.ToInt() < 5)
             {
-                timer.Stop();
-                IntervalDown.IsEnabled = true;
-                IntervalUp.IsEnabled = true;
-                SizeDown.IsEnabled = true;
-                SizeUp.IsEnabled = true;
-                MyMenu.IsEnabled = true;
-                IndicMoore.IsEnabled = true;
-                IndicMoore.Opacity = 1;
-                MyMenu.Opacity = 1;
-                IntervalDown.Opacity = 1;
-                IntervalUp.Opacity = 1;
-                SizeDown.Opacity = 1;
-                SizeUp.Opacity = 1;
+                density -= 1;
+                Density.Text = (Density.Text.ToInt() + 1).ToString();
             }
-            Print();
+        }
+        /// <summary>
+        /// Уменьшает плотность населения, увеличивая density
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void DensityDown_Click(object sender, RoutedEventArgs e)
+        {
+            if (Density.Text.ToInt() > 0)
+            {
+                density += 1;
+                Density.Text = (Density.Text.ToInt() - 1).ToString();
+            }
+        }
+        /// <summary>
+        /// Происходит, когда пользователь выбирает рандомное заселение
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void IndicRand_Click(object sender, RoutedEventArgs e)
+        {
+            randInd = (bool)IndicRand.IsChecked;
+            if (randInd)
+            {
+                DensityObjectsInMenu.IsEnabled = true;
+                DensityObjectsInMenu.Opacity = 1;
+            }
+            else
+            {
+                DensityObjectsInMenu.IsEnabled = false;
+                DensityObjectsInMenu.Opacity = 0.5;
+            }
         }
     }
 

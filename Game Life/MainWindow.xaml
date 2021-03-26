@@ -22,7 +22,6 @@
                 Grid.Row="2"
                 Background="LightGray"
                 Width="1356"
-                Margin="0,4,0,0"
                 Height="704">
         </Canvas>
         <StackPanel Orientation="Horizontal"
@@ -166,6 +165,48 @@
                            Foreground="Black"/>
                         </Border>
                     </StackPanel>
+                    <StackPanel Orientation="Horizontal"
+                                x:Name="DensityObjectsInMenu">
+                        <TextBlock Text="Плотность засел.: "
+                   TextAlignment="Center"
+                   VerticalAlignment="Center"
+                   Margin="3"
+                   FontFamily="Candara"
+                   FontSize="20"
+                   Foreground="Black"/>
+                        <Border BorderThickness="1"
+                    BorderBrush="Black"
+                     Margin="17,7,0,7"
+                    Width="25">
+                            <TextBlock x:Name="Density"
+                           TextAlignment="Center"
+                           VerticalAlignment="Center"
+                           FontFamily="Times New Roman"
+                           FontSize="20"
+                           Text="1"
+                           Cursor="Hand"
+                           Background="White"
+                           Foreground="Black"/>
+                        </Border>
+                        <StackPanel Orientation="Vertical"
+                        Margin="4,5,13,0">
+                            <Button x:Name="DensityUp"
+                        FontFamily="Segoe UI Symbol" 
+                        Content="&#xE110;"
+                        FontSize="9"
+                        Background="White"
+                        Cursor="Hand"
+                        Click="DensityUp_Click"/>
+                            <Button x:Name="DensityDown"
+                        FontFamily="Segoe UI Symbol" 
+                        Content="&#xE1FD;"
+                          FontSize="9"
+                        Background="White"
+                        Cursor="Hand"
+                        Click="DensityDown_Click"/>
+                        </StackPanel>
+
+                    </StackPanel>
                     <!--Кнопки для настройки кол-ва соседей для смерти-->
                     <!--<StackPanel Orientation="Horizontal">
                         <TextBlock Text="Нач. пар. смерти: "
@@ -301,16 +342,30 @@
                     </ControlTemplate>
                 </Button.Template>
             </Button>
-            <CheckBox x:Name="IndicMoore"
+            <StackPanel Orientation="Vertical"
+                        Margin="0,2">
+                <CheckBox x:Name="IndicMoore"
+                         VerticalAlignment="Center"
+                         Cursor="Hand">
+                    <TextBlock Text="Вкл. соседство фон Неймана"
+                       FontSize="14"
+                       Margin="3,0"
+                       VerticalAlignment="Center"
+                       HorizontalAlignment="Center"/>
+                </CheckBox>
+
+                <CheckBox x:Name="IndicRand"
                          VerticalAlignment="Center"
                          Cursor="Hand"
-                         />
-            <TextBlock Text="Вкл. соседство фон Неймана"
-                       FontSize="18"
+                         Click="IndicRand_Click">
+                    <TextBlock Text="Вкл. рандандомное заселение"
+                       FontSize="14"
                        VerticalAlignment="Center"
                        HorizontalAlignment="Center"
                        Margin="3,0"/>
+                </CheckBox>
 
+            </StackPanel>
         </StackPanel>
         <TextBlock FontSize="80"
                    FontWeight="Medium"
